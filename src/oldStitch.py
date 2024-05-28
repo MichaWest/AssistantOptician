@@ -54,7 +54,7 @@ class Stitcher:
         if H is None:
             self.drawMatches_status(imageA, imageB, kpsA, kpsB, matches)
 
-        if not matches is None:
+        if not H is None:
             # в противном случае примените перспективную деформацию,
             # чтобы сшить изображения вместе
             # matches - список ключевых точек
@@ -89,9 +89,14 @@ class Stitcher:
         # проверяем, используем ли мы OpenCV 3.X
         if self.isv3:
             # обнаруживать и извлекать объекты из изображения
-            descriptor = cv2.xfeatures2d.SIFT_create()
+            '''
+            descriptor = cv2.SIFT_create()
             (kps, features) = descriptor.detectAndCompute(image, None)
-        # случай использования OpenCV 2.4.X
+            '''
+            orb = cv2.ORB_create()
+            (kps, features) = orb.detectAndCompute(image,None)
+
+            # случай использования OpenCV 2.4.X
         else:
             # обнаруживание ключевые точки на изображении
             detector = cv2.FeatureSetector_create("SIFT")

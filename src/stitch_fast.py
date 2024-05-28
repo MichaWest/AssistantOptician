@@ -10,17 +10,17 @@ class Stitcher:
         self.isv3 = imutils.is_cv3(or_better=True)
 
     # в начале нижнее потом верхнее
-    def horizontal_stitch(self, images, new_width, new_height, ratio=0.75, reprojThresh=4.0, showMatches=False):
-        return self.__stitch(images, new_width, new_height, ratio, reprojThresh, showMatches)
+    def horizontal_stitch(self, images, ratio=0.75, reprojThresh=4.0, showMatches=False):
+        return self.__stitch(images, ratio, reprojThresh, showMatches)
 
     # в начале левое потом правое изображение
-    def vertical_stitch(self, images, new_width, new_height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    def vertical_stitch(self, images, ratio=0.75, reprojThresh=4.0, showMatches=False):
         (imageB, imageA) = images
         imageB = cv2.rotate(imageB, cv2.ROTATE_90_CLOCKWISE)
         imageA = cv2.rotate(imageA, cv2.ROTATE_90_CLOCKWISE)
         images = (imageB, imageA)
         if showMatches:
-            (result, vis) = self.__stitch(images, new_height, new_width, ratio, reprojThresh, showMatches)
+            (result, vis) = self.__stitch(images, ratio, reprojThresh, showMatches)
             return cv2.rotate(result, cv2.ROTATE_90_COUNTERCLOCKWISE), vis
 
         result = self.__stitch(images, ratio, reprojThresh, showMatches)
@@ -35,7 +35,7 @@ class Stitcher:
                   совпадения ключевых точек или нет
     '''
 
-    def __stitch(self, images, new_width, new_height, ratio=0.75, reprojThresh=4.0, showMatches=False):
+    def __stitch(self, images, ratio=0.75, reprojThresh=4.0, showMatches=False):
         (imageB, imageA) = images
         # извлекаем ключевые точки и локальные инвариантные дескрипторы
         (kpsA, featuresA) = self.detectAndDescribe(imageA)
@@ -51,13 +51,19 @@ class Stitcher:
 
         (matches, H, status) = M
 
+        l = 0
+        i = 0
+        for ((trainIdx, queryIdx), s) in zip(matches, status):
+            l = l - int(kpsB[trainIdx][0]) + int(kpsA[queryIdx][0])
+            i = i + 1
+        l = l // i
         # в противном случае примените перспективную деформацию,
         # чтобы сшить изображения вместе
         # matches - список ключевых точек
         # H - матрица гомографии
         # status - список индексов, указывающих, какие ключевые точки в matches
         #          были успешно проверены в пространстве
-        result = cv2.warpPerspective(imageA, H, (new_width, new_height))
+        result = cv2.warpPerspective(imageA, H, (imageA.shape[1]+int(l), imageA.shape[0]))
         result[0:imageB.shape[0], 0:imageB.shape[1]] = imageB
 
 
@@ -66,11 +72,9 @@ class Stitcher:
             vis = self.drawMatches(imageA, imageB, kpsA, kpsB, matches,
                                    status)
             # возвращает кортеж сшитого изображения и визуализацию
-            print('vis')
             return result, vis
 
         # возвращает сшитое изображение
-        print('not vis')
         return result
 
     """
@@ -112,7 +116,7 @@ class Stitcher:
                 matches.append((m[0].trainIdx, m[0].queryIdx))
 
         # для вычисления гомографии требуется не менее 4 совпадений
-        if len(matches) > 4:
+        if len(matches) > 3:
             # строим два набора точек
             ptsA = np.float32([kpsA[i] for (_, i) in matches])
             ptsB = np.float32([kpsB[i] for (i, _) in matches])
