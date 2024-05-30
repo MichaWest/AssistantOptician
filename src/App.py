@@ -28,7 +28,8 @@ class MainWindow(QWidget):
         self.setWindowTitle("AssistantOptician")
 
         self.tasks = {'speed': 100}
-        self.params = {'step': 50, 'id_x': 1, 'id_y': 2, 'id_z': 3, 'speed': 100, 'down_step': 10}
+        self.params = {'step': 300, 'id_x': 0, 'id_y': 1, 'id_z': 2, 'speed': 100, 'down_step': 3, 'range': 30,
+                       'accel': 100, 'speed': 100, 'exposure': 8000, 'LUT': 700}
 
         self.__draw_button()
         self.__draw_tabs()
@@ -62,68 +63,104 @@ class MainWindow(QWidget):
         self.reset_button = QtWidgets.QPushButton('Reset')
         self.reset_button.clicked.connect(self.reset)
 
+        self.renew_coeff_button = QtWidgets.QPushButton('Пересчет коэффициента')
+        self.renew_coeff_button.clicked.connect(self.renew_coefficient)
+
 
     def __draw_tabs(self):
         self.toolBox = QtWidgets.QToolBox()
         self.toolBox.addItem(self.__get_ximc_widget(), "Подвижки")
-        self.toolBox.addItem(QtWidgets.QLabel("Параметры Камеры"), "Камера")
-        self.toolBox.addItem(QtWidgets.QLabel("Параметры Сетки"), "Сетка")
+        self.toolBox.addItem(self.__get_camera_widget(), "Камера")
+        self.toolBox.addItem(self.__get_focus_widget(), "Автофокуса")
 
-    def __get_focus_label(self):
-        pass
-
-    def __get_camera_label(self):
-        pass
-
-    def __get_ximc_widget(self):
+    def __get_focus_widget(self):
         widget = QWidget()
         label = QtWidgets.QGridLayout()
 
-        # self.x_id = QLineEdit(str(self.Ximc_X))
-        # self.x_id.setValidator(QIntValidator(1, 3))
-        # self.x_id.textChanged.connect(self.x_id_changed)
+        # Поле для изменения шага сдвига подвижки вдоль оси z
+        self.down_step = QtWidgets.QSpinBox()
+        self.down_step.setSpecialValueText(str(self.params.get("down_step")))
+        self.down_step.valueChanged.connect(self.down_step_changed)
+        label.addWidget(QtWidgets.QLabel("Шаг (z)"), 0, 0)
+        label.addWidget(self.down_step, 0, 1, 1, 3)
+
+        # Поле для изменения границы нахождения автофокуса
+        self.range = QtWidgets.QSpinBox()
+        self.range.setSpecialValueText(str(self.params.get("range")))
+        self.range.valueChanged.connect(self.range_changed)
+        label.addWidget(QtWidgets.QLabel("Диапазон"), 1, 0)
+        label.addWidget(self.range, 1, 1, 1, 3)
+
+        widget.setLayout(label)
+        return widget
+
+    def __get_camera_widget(self):
+        widget = QWidget()
+        label = QtWidgets.QGridLayout()
+
+        self.exposure = QtWidgets.QSpinBox()
+        self.exposure.setSpecialValueText(str(self.params.get("exposure")))
+        self.exposure.valueChanged.connect(self.exposure_changed)
+        label.addWidget(QtWidgets.QLabel("Exposure"), 0, 0)
+        label.addWidget(self.exposure, 0, 1, 1, 3)
+
+        self.LUT = QtWidgets.QSpinBox()
+        self.LUT.setSpecialValueText(str(self.params.get("LUT")))
+        self.LUT.valueChanged.connect(self.LUT_changed)
+        label.addWidget(QtWidgets.QLabel("LUT"), 1, 0)
+        label.addWidget(self.LUT, 1, 1, 1, 3)
+
+        widget.setLayout(label)
+        return widget
+
+    def __get_ximc_widget(self):
+        # Значение id по умолчанию
+
+        widget = QWidget()
+        label = QtWidgets.QGridLayout()
+
+        # Поле для изменения x-подвижки
         self.x_id = self.__get_id_box()
-        self.x_id.setMaximum(3)
-        self.x_id.setMinimum(0)
         self.x_id.setSpecialValueText(str(self.params.get("id_x")))
         self.x_id.valueChanged.connect(self.x_id_changed)
         label.addWidget(QtWidgets.QLabel("ID X"), 0, 0)
         label.addWidget(self.x_id, 0, 1, 1, 3)
 
+        # Поле для изменения id y-подвижки
         self.y_id = self.__get_id_box()
-        self.y_id.setMaximum(3)
-        self.y_id.setMinimum(0)
         self.y_id.setSpecialValueText(str(self.params.get("id_y")))
         self.y_id.valueChanged.connect(self.y_id_changed)
         label.addWidget(QtWidgets.QLabel("ID Y"), 1, 0)
         label.addWidget(self.y_id, 1, 1, 1, 3)
 
+        # Поле для изменения id z-подвижки
         self.z_id = self.__get_id_box()
-        self.z_id.setMaximum(3)
-        self.z_id.setMinimum(0)
         self.z_id.setSpecialValueText(str(self.params.get("id_z")))
         self.z_id.valueChanged.connect(self.z_id_changed)
         label.addWidget(QtWidgets.QLabel("ID Z"), 2, 0)
         label.addWidget(self.z_id, 2, 1, 1, 3)
 
+        # Поле для изменения шага сдвига подвижки вдоль оси x и y
         self.step = QtWidgets.QSpinBox()
         self.step.setSpecialValueText(str(self.params.get("step")))
         self.step.valueChanged.connect(self.step_changed)
-        label.addWidget(QtWidgets.QLabel("Шаг (x, y)"), 3, 0)
+        label.addWidget(QtWidgets.QLabel("Шаг"), 3, 0)
         label.addWidget(self.step, 3, 1, 1, 3)
 
-        self.down_step = QtWidgets.QSpinBox()
-        self.down_step.setSpecialValueText(str(self.params.get("down_step")))
-        self.step.valueChanged.connect(self.down_step_changed)
-        label.addWidget(QtWidgets.QLabel("Шаг (z)"), 4, 0)
-        label.addWidget(self.down_step, 4, 1, 1, 3)
-
+        # Поле для изменения скорости подвижки
         self.speed = QtWidgets.QSpinBox()
         self.speed.setMaximum(1000)
         self.speed.setSpecialValueText(str(self.params.get("speed")))
-        label.addWidget(QtWidgets.QLabel("Скорость"), 5, 0)
         self.speed.valueChanged.connect(self.speed_changed)
-        label.addWidget(self.speed, 5, 1, 1, 3)
+        label.addWidget(QtWidgets.QLabel("Скорость"), 4, 0)
+        label.addWidget(self.speed, 4, 1, 1, 3)
+
+        # Поле для изменения ускорения подвижки
+        self.accel = QtWidgets.QSpinBox()
+        self.accel.setSpecialValueText(str(self.params.get("accel")))
+        self.accel.valueChanged.connect(self.accel_changed)
+        label.addWidget(QtWidgets.QLabel("Ускорение"), 5, 0)
+        label.addWidget(self.accel, 5, 1, 1, 3)
 
         widget.setLayout(label)
         return widget
@@ -139,6 +176,7 @@ class MainWindow(QWidget):
         self.sc = MplCanvas(width=5, height=4, dpi=100)
 
         self.grid = QtWidgets.QGridLayout()
+        self.grid.addWidget(self.renew_coeff_button, 11, 0, 1, 5)
         self.grid.addWidget(self.apply_button, 12, 0, 1, 2)
         self.grid.addWidget(self.reset_button, 12, 3, 1, 2)
         self.grid.addWidget(self.button_down, 15, 2)
@@ -146,47 +184,36 @@ class MainWindow(QWidget):
         self.grid.addWidget(self.button_left, 14, 1)
         self.grid.addWidget(self.button_right, 14, 3)
         self.grid.addWidget(self.button_focus, 14, 2)
-        self.grid.addWidget(self.sc, 0, 5, 16, 25)
-        self.grid.addWidget(self.toolBox, 0, 0, 12, 5)
+        self.grid.addWidget(self.sc, 0, 5, 16, 25)  # меняя параметры тут, не забудьте их поменять в методе update_map
+        self.grid.addWidget(self.toolBox, 0, 0, 11, 5)
 
         self.setLayout(self.grid)
 
     def __draw_map(self):
-        start_img = cv2.imread("1.png")
-        # self.ximc_x.move(step)
-        next_img = cv2.imread("2.png")
-        # self.ximc_x.move(-step)
-
-        sticher = Stitcher()
-        result = sticher.horizontal_stitch([start_img, next_img])
-        l = result.shape[1] - start_img.shape[1]
-        # находим коэффициент пропорциональности
-        self.k = step / l
-
-        # определяем координаты левого нижнего угла карты
-        self.map_x = 100 - start_img.shape[1] / 2 * self.k
-        self.map_y = 100 - start_img.shape[0] / 2 * self.k
-        self.map_z = 100
+        img = cv2.imread("1.png")
 
         # определеяем координаты подвижки
         self.x = 100
         self.y = 100
         self.z = 100
 
-        # рисуем карту
-        self.map = Map(start_img, self.x, self.y, self.k)
-        map_img = self.map.get_img()
-        self.sc.axes.imshow(map_img, extent=[self.map_x,
-                                             self.map_x + self.k * map_img.shape[1],
+        # определяем координаты левого нижнего угла карты
+        self.map_x = self.x - img.shape[1] / 2
+        self.map_y = self.y - img.shape[0] / 2
+        self.map_z = self.z
+
+
+        self.sc.axes.imshow(img, extent=[self.map_x,
+                                             self.map_x + img.shape[1],
                                              self.map_y,
-                                             self.map_y + self.k * map_img.shape[0]])
+                                             self.map_y + img.shape[0]])
 
         # рисуем прямоугольник (рассматриваемой области) и опредяеляем его ширину
-        self.rect_width = int(self.k * start_img.shape[1])
-        self.rect_heigt = int(self.k * start_img.shape[0])
+        self.rect_width = int(img.shape[1])
+        self.rect_height = int(img.shape[0])
 
         self.sc.axes.add_patch(
-            Rectangle((self.x - self.rect_width // 2, self.y - self.rect_heigt // 2), self.rect_width, self.rect_heigt,
+            Rectangle((self.x - self.rect_width // 2, self.y - self.rect_height // 2), self.rect_width, self.rect_height,
                       edgecolor='black',
                       facecolor='none',
                       lw=1.5,
@@ -250,6 +277,21 @@ class MainWindow(QWidget):
     def handle_focus_button(self):
         pass
 
+    def accel_changed(self, a):
+        pass
+
+    def range_changed(self, r):
+        pass
+
+    def LUT_changed(self, lut):
+        pass
+
+    def renew_coefficient(self):
+        pass
+
+    def exposure_changed(self, exp):
+        pass
+
     def apply(self):
         try:
             arr = self.tasks.keys()
@@ -270,7 +312,6 @@ class MainWindow(QWidget):
             self.speed.setValue(self.params.get("speed"))
         except Exception as err:
             print(f"Unexpected {err=}, {type(err)=}")
-
 
     def __update_map(self):
         add = cv2.imread("2.png")
