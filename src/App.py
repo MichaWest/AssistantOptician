@@ -1,26 +1,21 @@
 import math
-import sys
-import threading
 import traceback
 
-from PyQt5.QtCore import QRect, QProcess
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout
-from PyQt5.QtGui import QPixmap
-from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtWidgets import QWidget
+from PyQt5 import QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
-from PyQt5 import QtGui, QtCore
-import matplotlib
+from PyQt5 import QtGui
 
 
 from LabOptic import *
 from ximea import xiapi
 import PIL.Image
-from Map import Map
+from Image_map import ImageMap
 import numpy
 
-from PyQt5.QtWidgets import QMainWindow, QTextEdit, QMenuBar, QApplication, QPlainTextEdit 
+from PyQt5.QtWidgets import QTextEdit, QApplication
 from PyQt5.QtCore import QObject
 from PyQt5.QtCore import pyqtSignal as Signal
 from PyQt5.QtCore import QCoreApplication
@@ -460,7 +455,7 @@ class MainWindow(QWidget):
             self.rect_width = int(self.k_x * img.shape[1])
             self.rect_height = int(self.k_y * img.shape[0])
 
-            self.map = Map(img, self.x, self.y, 1 / self.k_x, 1 / self.k_y)
+            self.map = ImageMap(img, self.x, self.y, 1 / self.k_x, 1 / self.k_y)
 
             self.rect_x = self.map.get_x_cord()
             self.rect_y = self.map.get_y_cord()
@@ -683,7 +678,7 @@ class MainWindow(QWidget):
             self.rect_width = int(self.k_x * first_img.shape[1])
             self.rect_height = int(self.k_y * first_img.shape[0])
 
-            self.map = Map(first_img, self.x, self.y, l_x / step, l_y / step)
+            self.map = ImageMap(first_img, self.x, self.y, l_x / step, l_y / step)
 
             self.rect_x = self.map.get_x_cord()
             self.rect_y = self.map.get_y_cord()
@@ -753,7 +748,7 @@ class MainWindow(QWidget):
         self.rect_width = int(self.k_x * first_img.shape[1])
         self.rect_height = int(self.k_y * first_img.shape[0])
 
-        self.map = Map(first_img, self.x, self.y, 1 / self.k_x, 1 / self.k_y)
+        self.map = ImageMap(first_img, self.x, self.y, 1 / self.k_x, 1 / self.k_y)
 
         self.rect_x = self.map.get_x_cord()
         self.rect_y = self.map.get_y_cord()
