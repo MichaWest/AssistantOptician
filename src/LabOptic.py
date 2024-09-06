@@ -78,6 +78,8 @@ class Ximc:
 
     def __init__(self, i):
         self.number = i
+        self.accel = None
+        self.speed = None
         # self.cord = self.get_position()
 
     def get_dev_count(self, devenum):
@@ -118,6 +120,11 @@ class Ximc:
         self.device_id = lib.open_device(open_name)
         print("Device id: " + repr(self.device_id))
 
+        mvst = move_settings_t()
+        result = lib.get_move_settings(self.device_id, byref(mvst))
+        self.speed = mvst.Speed
+        self.accel = mvst.Accel
+
     def disconnect(self):
         if not self.device_id is None:
             print("\nClosing")
@@ -153,6 +160,56 @@ class Ximc:
             print("The speed was equal to {0}. We will change it to {1}".format(mvst.Speed, speed))
             # Change current speed
             mvst.Speed = int(speed)
+            self.speed = speed
+            # Write new move settings to controller
+            result = lib.set_move_settings(self.device_id, byref(mvst))
+            # Print command return status. It will be 0 if all is OK
+            print("Write command result: " + repr(result))
+        else:
+            print("Device isn't connect")
+
+    # def get_engine_settings(self):
+    #     print("\nGet engine settings")
+    #     engst = engine_settings_t()
+
+    #     result = lib.get_engine_settings(self.device_id, byref(engst))
+
+    #     print("Read command result: " + repr(bin(engst.EngineFlags)))
+
+
+    def set_accel(self, accel):
+        if not self.device_id is None:
+            print("\nSet accel")
+            # Create move settings structure
+            mvst = move_settings_t()
+            # Get current move settings from controller
+            result = lib.get_move_settings(self.device_id, byref(mvst))
+            # Print command return status. It will be 0 if all is OK
+            print("Read command result: " + repr(result))
+            print("The accel was equal to {0}. We will change it to {1}".format(mvst.Accel, accel))
+            # Change current speed
+            mvst.Accel = int(accel)
+            self.accel = accel
+            # Write new move settings to controller
+            result = lib.set_move_settings(self.device_id, byref(mvst))
+            # Print command return status. It will be 0 if all is OK
+            print("Write command result: " + repr(result))
+        else:
+            print("Device isn't connect")
+
+    def set_decel(self, decel):
+        if not self.device_id is None:
+            print("\nSet decel")
+            # Create move settings structure
+            mvst = move_settings_t()
+            # Get current move settings from controller
+            result = lib.get_move_settings(self.device_id, byref(mvst))
+            # Print command return status. It will be 0 if all is OK
+            print("Read command result: " + repr(result))
+            print("The decel was equal to {0}. We will change it to {1}".format(mvst.Decel, decel))
+            # Change current speed
+            mvst.Decel = int(decel)
+            #self.Decel = accel
             # Write new move settings to controller
             result = lib.set_move_settings(self.device_id, byref(mvst))
             # Print command return status. It will be 0 if all is OK
@@ -163,16 +220,32 @@ class Ximc:
     # distance [um]
     def move_to(self, distance, udistance):
         if not self.device_id is None:
+            cord = self.get_position()[0]
+            time.sleep(1)
             print("\nGoing to {0} steps, {1} microsteps".format(distance, udistance))
             result = lib.command_move(self.device_id, distance, udistance)
             print("Result: " + repr(result))
+            
+            t = abs(distance - cord)/self.speed + self.speed/self.accel+1
+            print("Waiting: "+str(t))
+            time.sleep(t)
         else:
             print("Device isn't connect")
 
-    def move(self, dl):
-        cord = self.get_position()
-        self.move_to(cord[0] + dl, cord[1])
-        time.slepp(1)  # время на обновление координат
+    def move(self, deltaPosition, udeltaPosition=0):
+        if not self.device_id is None:
+            time.sleep(1)
+            print("\nGoing {0} steps, {1} microsteps".format(deltaPosition, udeltaPosition))
+            result = lib.command_movr(self.device_id, deltaPosition, udeltaPosition)
+            print("Result: " + repr(result))
+            
+            t = abs(deltaPosition)/self.speed + self.speed/self.accel+1
+            print("Waiting: "+str(t))
+            time.sleep(t)
+        else:
+            print("Device isn't connect")
+    
+
 
     def info(self):
         if not self.device_id is None:
@@ -208,8 +281,16 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def kill(seld):
-        None
+    '''
+    Немедленная остановка двигателя, переход в состояние STOP, ключи в режиме BREAK 
+    (обмотки накоротко замкнуты), режим "удержания" дезактивируется для DC двигателей, удержание тока в
+    обмотках для шаговых двигателей (с учётом Power management настроек).
+    При вызове этой команды сбрасывается флаг ALARM.
+    '''
+    def kill(self):
+        if not self.device_id is None:
+            print("\nStop process")
+            lib.command_stop(self.device_id)
 
 
 class Pesa:

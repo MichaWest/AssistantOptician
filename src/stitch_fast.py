@@ -11,7 +11,10 @@ class Stitcher:
 
     # в начале нижнее потом верхнее
     def horizontal_stitch(self, images, ratio=0.75, reprojThresh=4.0, showMatches=False):
-        return self.__stitch(images, ratio, reprojThresh, showMatches)
+        (imageA, imageB) = images
+        imageA = imutils.resize(imageA, width=400)
+        imageB = imutils.resize(imageB, width=400)
+        return self.__stitch([imageA, imageB], ratio, reprojThresh, showMatches)
 
     # в начале левое потом правое изображение
     def vertical_stitch(self, images, ratio=0.75, reprojThresh=4.0, showMatches=False):
@@ -51,12 +54,18 @@ class Stitcher:
 
         (matches, H, status) = M
 
+        # Place these statements prior to the error and check their values
+        # In my case this was None, which is why I got an error
+
+
         l = 0
         i = 0
         for ((trainIdx, queryIdx), s) in zip(matches, status):
-            l = l - int(kpsB[trainIdx][0]) + int(kpsA[queryIdx][0])
+            l = l + int(kpsB[trainIdx][0])-int(kpsA[queryIdx][0])
             i = i + 1
-        l = l // i
+    
+        l = int(l/i)
+
         # в противном случае примените перспективную деформацию,
         # чтобы сшить изображения вместе
         # matches - список ключевых точек
@@ -72,9 +81,11 @@ class Stitcher:
             vis = self.drawMatches(imageA, imageB, kpsA, kpsB, matches,
                                    status)
             # возвращает кортеж сшитого изображения и визуализацию
+            print('vis')
             return result, vis
 
         # возвращает сшитое изображение
+        print('not vis')
         return result
 
     """
@@ -116,7 +127,7 @@ class Stitcher:
                 matches.append((m[0].trainIdx, m[0].queryIdx))
 
         # для вычисления гомографии требуется не менее 4 совпадений
-        if len(matches) > 3:
+        if len(matches) >= 4:
             # строим два набора точек
             ptsA = np.float32([kpsA[i] for (_, i) in matches])
             ptsB = np.float32([kpsB[i] for (i, _) in matches])
@@ -127,7 +138,7 @@ class Stitcher:
             # статусом каждой совпадающей точки
             return (matches, H, status)
         # никакая гомографии не вычислена
-        return matches, None, None
+        return None
 
     def drawMatches(self, imageA, imageB, kpsA, kpsB, matches, status):
         # инциализация выходных изображений визуализации
