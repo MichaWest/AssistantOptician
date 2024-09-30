@@ -1,3 +1,4 @@
+import PIL
 import cv2
 from stitch_fast import Stitcher
 from PIL import Image
@@ -19,7 +20,7 @@ class ImageMap:
         return numpy.array(self.img_map)
 
     # новое изображение и его координаты
-    def add_image(self, image, x, y):
+    def add_image(self, image, x: float, y: float):
         image = Image.fromarray(image)
 
         temp_x_map = self.map.get_x_cord()
@@ -57,8 +58,8 @@ class ImageMap:
 
         return numpy.array(self.img_map)
 
-    def get_x_cord(self):
+    def get_x_cord(self) -> float:
         return self.map.get_x_cord()
 
-    def get_y_cord(self):
+    def get_y_cord(self) -> float:
         return self.map.get_y_cord()

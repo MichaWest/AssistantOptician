@@ -2,14 +2,14 @@
 
 class Map:
 
-    def __init__(self, cord_x, cord_y, w=0, h=0):
+    def __init__(self, cord_x:float, cord_y:float, w=0, h=0):
         self.x_arr = [cord_x]
         self.y_arr = [cord_y]
 
         self.width = w
         self.height = h
 
-    def add_cord(self, x, y):
+    def add_cord(self, x: float, y: float):
         l_x = len(self.x_arr)
         l_y = len(self.y_arr)
 
@@ -33,10 +33,10 @@ class Map:
             self.y_arr.append(y)
             self.y_arr.sort()
 
-    def get_x_cord(self):
+    def get_x_cord(self) -> float:
         return self.x_arr[0]
 
-    def get_y_cord(self):
+    def get_y_cord(self) -> float:
         return self.y_arr[0]
 
 

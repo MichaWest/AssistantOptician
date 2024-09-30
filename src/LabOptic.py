@@ -76,13 +76,13 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def __init__(self, i):
+    def __init__(self, i: int):
         self.number = i
         self.accel = None
         self.speed = None
         # self.cord = self.get_position()
 
-    def get_dev_count(self, devenum):
+    def get_dev_count(self, devenum) -> int:
         return lib.get_device_count(devenum)
 
     def connect(self):
@@ -135,7 +135,7 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def get_speed(self):
+    def get_speed(self) -> int:
         if not self.device_id is None:
             print("\nGet speed")
             # Create move settings structure
@@ -148,7 +148,7 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def set_speed(self, speed):
+    def set_speed(self, speed: int):
         if not self.device_id is None:
             print("\nSet speed")
             # Create move settings structure
@@ -168,16 +168,8 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    # def get_engine_settings(self):
-    #     print("\nGet engine settings")
-    #     engst = engine_settings_t()
 
-    #     result = lib.get_engine_settings(self.device_id, byref(engst))
-
-    #     print("Read command result: " + repr(bin(engst.EngineFlags)))
-
-
-    def set_accel(self, accel):
+    def set_accel(self, accel: int):
         if not self.device_id is None:
             print("\nSet accel")
             # Create move settings structure
@@ -197,7 +189,7 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def set_decel(self, decel):
+    def set_decel(self, decel: int):
         if not self.device_id is None:
             print("\nSet decel")
             # Create move settings structure
@@ -218,7 +210,7 @@ class Ximc:
             print("Device isn't connect")
 
     # distance [um]
-    def move_to(self, distance, udistance):
+    def move_to(self, distance: int, udistance: int):
         if not self.device_id is None:
             cord = self.get_position()[0]
             time.sleep(1)
@@ -232,7 +224,7 @@ class Ximc:
         else:
             print("Device isn't connect")
 
-    def move(self, deltaPosition, udeltaPosition=0):
+    def move(self, deltaPosition: int, udeltaPosition=0):
         if not self.device_id is None:
             time.sleep(1)
             print("\nGoing {0} steps, {1} microsteps".format(deltaPosition, udeltaPosition))

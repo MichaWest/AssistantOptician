@@ -8,7 +8,6 @@ from matplotlib.figure import Figure
 from matplotlib.patches import Rectangle
 from PyQt5 import QtGui
 
-
 from LabOptic import *
 from ximea import xiapi
 import PIL.Image
@@ -39,6 +38,8 @@ number = 0
 '''
 Получаем изображение с камеры и записываем в нужный формат
 '''
+
+
 def get_image(cam):
     # create instance of Image to store image data and metadata
     img = xiapi.Image()
@@ -53,11 +54,11 @@ def get_image(cam):
 
     # show acquired image
     img = PIL.Image.fromarray(data, 'RGB')
-    img = img.crop((img.width * 0.3, img.height * 0.3, img.width * 0.75, img.height * 0.75 ))
+    img = img.crop((img.width * 0.3, img.height * 0.3, img.width * 0.75, img.height * 0.75))
 
     global number
-    #img.save('img'+str(number)+'.png')
-    #number = number + 1
+    # img.save('img'+str(number)+'.png')
+    # number = number + 1
 
     return imutils.resize(numpy.array(img), width=1000)
 
@@ -97,6 +98,7 @@ OUTPUT_LOGGER_STDERR = OutputLogger(sys.stderr, OutputLogger.Severity.ERROR)
 sys.stdout = OUTPUT_LOGGER_STDOUT
 sys.stderr = OUTPUT_LOGGER_STDERR
 
+
 class MainWindow(QWidget):
     def __init__(self):
         try:
@@ -104,8 +106,9 @@ class MainWindow(QWidget):
             self.setWindowTitle('AssistantOptician')
 
             self.tasks = {'step': 100}
-            self.params = {'step': 100, 'id_x': Ximc_X, 'id_y': Ximc_Y, 'id_z': Ximc_Z, 'speed': 500, 'down_step': 5, 'range': 100,
-                        'accel': 5000, 'exposure': 8000, 'LUT': 700}
+            self.params = {'step': 100, 'id_x': Ximc_X, 'id_y': Ximc_Y, 'id_z': Ximc_Z, 'speed': 500, 'down_step': 5,
+                           'range': 100,
+                           'accel': 5000, 'exposure': 8000, 'LUT': 700}
 
             self.k_x = K_x
             self.k_y = K_y
@@ -121,7 +124,8 @@ class MainWindow(QWidget):
             self.__draw_map()
         except Exception as err:
             traceback.print_exc()
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
     '''
     Подключение к устройствам установки 
@@ -181,53 +185,54 @@ class MainWindow(QWidget):
     '''
     Определение вкладок для сдвига 
     '''
-    def __get_move_widget(self):
+
+    def __get_move_widget(self) -> QWidget:
         widget = QWidget()
         layout = QtWidgets.QVBoxLayout()
 
         self.cord_move_to_x = 0
         self.cord_move_to_y = 0
 
-        self.label_cord_move_to = QtWidgets.QLabel('move to: x=' + str(self.cord_move_to_x) + ', y='+str(self.cord_move_to_y))
+        self.label_cord_move_to = QtWidgets.QLabel(
+            'move to: x=' + str(self.cord_move_to_x) + ', y=' + str(self.cord_move_to_y))
         layout.addWidget(self.label_cord_move_to)
 
-        move_button =  QtWidgets.QPushButton('move')
+        move_button = QtWidgets.QPushButton('move')
         move_button.clicked.connect(self.handle_move_button)
         layout.addWidget(move_button)
 
         widget.setLayout(layout)
         return widget
-    
+
     '''
     Определение вкладки для задач
     '''
- 
-    def __get_action_widget(self):
+
+    def __get_action_widget(self) -> QWidget:
         widget = QWidget()
         grid = QtWidgets.QGridLayout()
- 
+
         scanning_button = QtWidgets.QPushButton('Отсканировать поверхность')
         scanning_button.clicked.connect(self.scanning)
- 
+
         draw_circles_button = QtWidgets.QPushButton('Нарисовать круги')
         draw_circles_button.clicked.connect(self.drawing_circles)
- 
+
         draw_grid_button = QtWidgets.QPushButton('Нарисовать сетку')
         draw_grid_button.clicked.connect(self.drawing_grid)
- 
+
         grid.addWidget(scanning_button, 0, 0)
         grid.addWidget(draw_circles_button, 1, 0)
         grid.addWidget(draw_circles_button, 2, 0)
- 
+
         widget.setLayout(grid)
         return widget
-    
-    
+
     '''
     Определение вкладки с характеристиками нахождения фокуса
     '''
 
-    def __get_focus_widget(self):
+    def __get_focus_widget(self) -> QWidget:
         widget = QWidget()
         label = QtWidgets.QGridLayout()
 
@@ -254,7 +259,7 @@ class MainWindow(QWidget):
     Определение вкладки с характеристиками камеры
     '''
 
-    def __get_camera_widget(self):
+    def __get_camera_widget(self) -> QWidget:
         widget = QWidget()
         label = QtWidgets.QGridLayout()
 
@@ -278,7 +283,7 @@ class MainWindow(QWidget):
     Определение вкладки с характеристиками подвижки
     '''
 
-    def __get_ximc_widget(self):
+    def __get_ximc_widget(self) -> QWidget:
         # Значение id по умолчанию
 
         widget = QWidget()
@@ -371,10 +376,9 @@ class MainWindow(QWidget):
         self.reset_button = QtWidgets.QPushButton('Reset')
         self.reset_button.clicked.connect(self.reset)
 
+        self.coefficient_label = QtWidgets.QLabel('k_x=' + str(self.k_x) + ', k_y=' + str(self.k_y))
 
-        self.coefficient_label = QtWidgets.QLabel('k_x=' + str(self.k_x) + ', k_y='+str(self.k_y))
-
-    def __get_id_box(self):
+    def __get_id_box(self) -> QtWidgets.QSpinBox:
         id = QtWidgets.QSpinBox()
         id.setWrapping(True)
         id.setMaximum(2)
@@ -396,8 +400,8 @@ class MainWindow(QWidget):
         OUTPUT_LOGGER_STDOUT.emit_write.connect(self.append_log)
         OUTPUT_LOGGER_STDERR.emit_write.connect(self.append_log)
 
-        #self.text_edit.appendPlainText('Exposure\n')
-        
+        # self.text_edit.appendPlainText('Exposure\n')
+
         self.grid = QtWidgets.QGridLayout()
         self.grid.addWidget(self.coefficient_label, 10, 0, 1, 5)
         self.grid.addWidget(self.renew_coeff_button, 11, 0, 1, 5)
@@ -414,15 +418,14 @@ class MainWindow(QWidget):
 
         self.setLayout(self.grid)
 
-    
-    def append_log(self, text, severity):
+    def append_log(self, text: str, severity):
         # text = repr(text)
 
         if severity == OutputLogger.Severity.ERROR:
             text = '<b>{}</b>'.format(text)
 
         self.text_edit.insertPlainText(text)
-    
+
     '''
     Определение карты образцы
     '''
@@ -435,13 +438,13 @@ class MainWindow(QWidget):
         self.y = self.ximc_y.get_position()[0]
         self.z = self.ximc_z.get_position()[0]
 
-        if self.k_x == 0 or self.k_y==0:
+        if self.k_x == 0 or self.k_y == 0:
 
-            map_x = int(self.x - img.shape[1]/2)
-            map_y = int(self.y - img.shape[0]/2)
+            map_x = int(self.x - img.shape[1] / 2)
+            map_y = int(self.y - img.shape[0] / 2)
 
             # определяем координаты прямоугольника
-            self.rect_x = map_x 
+            self.rect_x = map_x
             self.rect_y = map_y
 
             # рисуем прямоугольник (рассматриваемой области) и опредяеляем его ширину
@@ -460,7 +463,7 @@ class MainWindow(QWidget):
             self.rect_x = self.map.get_x_cord()
             self.rect_y = self.map.get_y_cord()
 
-            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y='+str(round(self.k_y, 2)))
+            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y=' + str(round(self.k_y, 2)))
 
             self.__update_map()
 
@@ -477,7 +480,7 @@ class MainWindow(QWidget):
 
         self.ximc_x.move(step, 0)
 
-        self.ximc_z.move(int (step * slope_coef))
+        self.ximc_z.move(int(step * slope_coef))
 
         # Обновляем карту на графике
         self.__update_map()
@@ -489,7 +492,7 @@ class MainWindow(QWidget):
         self.x = self.x - step
         self.rect_x = self.rect_x - step
 
-        self.ximc_x.move(-step-1)
+        self.ximc_x.move(-step - 1)
         self.ximc_x.move(1)
 
         self.ximc_z.move(int(-step * slope_coef))
@@ -512,22 +515,20 @@ class MainWindow(QWidget):
     def handle_down_button(self):
         step = self.params['step']
 
-
         # Обновляем координату y у левого нижнего угла у карты и прямоугольника
         self.y = self.y - step
-        
+
         self.rect_y = self.rect_y - step
 
-        self.ximc_y.move(-step-1, 0)
+        self.ximc_y.move(-step - 1, 0)
         self.ximc_y.move(1)
 
         # Обновляем карту на графике
         self.__update_map()
 
     def handle_focus_button(self):
-        #threading.Thread(target=self.auto_focus).start()
+        # threading.Thread(target=self.auto_focus).start()
         self.auto_focus()
-
 
     def auto_focus(self):
         QCoreApplication.processEvents()
@@ -551,36 +552,35 @@ class MainWindow(QWidget):
         # Самим определить
         blur = 1
 
-        def calculate_focus_score(image, blur):
-            #image_filtered = cv2.medianBlur(image, blur)
-            image_filtered = image
+        def calculate_focus_score(img) -> float:
+            # image_filtered = cv2.medianBlur(image, blur)
+            image_filtered = img
             laplacian = cv2.Laplacian(image_filtered, cv2.CV_64F)
-            focus_score = laplacian.var()
-            return focus_score
+            focus_sc = laplacian.var()
+            return focus_sc
 
-        i = 0 
+        i = 0
         for step in range(0, steps):
             position = min(start_mm + step * step_size_mm, end_mm)
             self.ximc_z.move(step_size_mm)
             image = get_image(self.cam)
             i = i + 1
 
-            focus_score = calculate_focus_score(image, blur)
+            focus_score = calculate_focus_score(image)
             if focus_score > best_focus_score:
                 best_focus_position = position
                 best_focus_score = focus_score
 
-
         self.ximc_z.move_to(best_focus_position, 0)
         self.z = best_focus_position
 
-        print('\n Best position '+str(best_focus_position))
+        print('\n Best position ' + str(best_focus_position))
 
         # Обновляем карту на графике
         self.__update_map()
 
     def handle_move_button(self):
-        print('move to: x=' + str(self.cord_move_to_x) + ', y='+str(self.cord_move_to_y))
+        print('move to: x=' + str(self.cord_move_to_x) + ', y=' + str(self.cord_move_to_y))
         step_x = self.cord_move_to_x - self.x
         step_y = self.cord_move_to_y - self.y
         self.x = self.cord_move_to_x
@@ -592,7 +592,7 @@ class MainWindow(QWidget):
         self.ximc_x.move_to(self.cord_move_to_x, 0)
         self.ximc_y.move_to(self.cord_move_to_y, 0)
         self.__update_map()
-    
+
     def scanning(self):
         try:
             if self.map is not None:
@@ -602,44 +602,46 @@ class MainWindow(QWidget):
                 self.ximc_y.move_to(self.y, 0)
                 self.__update_map()
             else:
-                QtWidgets.QMessageBox.critical(self, 'Ошибка ', 'Необходимо посчитать коэффициет', QtWidgets.QMessageBox.Ok)
+                QtWidgets.QMessageBox.critical(self, 'Ошибка ', 'Необходимо посчитать коэффициет',
+                                               QtWidgets.QMessageBox.Ok)
         except Exception as err:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
     def drawing_circles(self):
         pass
 
     def drawing_grid(self):
         pass
-    
-    def x_id_changed(self, i):
+
+    def x_id_changed(self, i: int):
         self.tasks['id_x'] = i
 
-    def y_id_changed(self, i):
+    def y_id_changed(self, i: int):
         self.tasks['id_y'] = i
 
-    def z_id_changed(self, i):
+    def z_id_changed(self, i: int):
         self.tasks['id_z'] = i
 
-    def speed_changed(self, v):
+    def speed_changed(self, v: int):
         self.tasks['speed'] = v
 
-    def step_changed(self, s):
+    def step_changed(self, s: int):
         self.tasks['step'] = s
 
-    def down_step_changed(self, s):
+    def down_step_changed(self, s: int):
         self.tasks['down_step'] = s
 
-    def accel_changed(self, a):
+    def accel_changed(self, a: int):
         self.tasks['accel'] = a
 
-    def LUT_changed(self, lut):
+    def LUT_changed(self, lut: int):
         self.tasks['LUT'] = lut
 
-    def exposure_changed(self, exp):
+    def exposure_changed(self, exp: int):
         self.tasks['exposure'] = exp
 
-    def range_changed(self, r):
+    def range_changed(self, r: int):
         self.tasks['range'] = r
 
     def renew_coefficient(self):
@@ -673,7 +675,6 @@ class MainWindow(QWidget):
 
             self.k_y = step / l_y
 
-
             # определяем размеры прямогульника рассматриваемой области
             self.rect_width = int(self.k_x * first_img.shape[1])
             self.rect_height = int(self.k_y * first_img.shape[0])
@@ -683,17 +684,18 @@ class MainWindow(QWidget):
             self.rect_x = self.map.get_x_cord()
             self.rect_y = self.map.get_y_cord()
 
-            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y='+str(round(self.k_y, 2)))
+            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y=' + str(round(self.k_y, 2)))
 
-            self.__update_map() 
+            self.__update_map()
         except Exception as err:
             self.map = None
             self.k_x = 0
             self.k_y = 0
 
-            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y='+str(round(self.k_y, 2)))
+            self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y=' + str(round(self.k_y, 2)))
             traceback.print_exc()
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
     def handle_button_renew_coefficient(self):
         dialog = QtWidgets.QDialog(self)
@@ -717,7 +719,7 @@ class MainWindow(QWidget):
         grid = QtWidgets.QHBoxLayout()
 
         line = QtWidgets.QVBoxLayout()
-        
+
         coef_x = QtWidgets.QDoubleSpinBox()
         coef_x.setDecimals(2)
         coef_x.setSpecialValueText(str(round(self.k_x, 2)))
@@ -728,7 +730,7 @@ class MainWindow(QWidget):
         grid.addLayout(line)
 
         line = QtWidgets.QVBoxLayout()
-        
+
         coef_y = QtWidgets.QDoubleSpinBox()
         coef_y.setDecimals(2)
         coef_y.setSpecialValueText(str(round(self.k_y, 2)))
@@ -753,16 +755,16 @@ class MainWindow(QWidget):
         self.rect_x = self.map.get_x_cord()
         self.rect_y = self.map.get_y_cord()
 
-        self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y='+str(round(self.k_y, 2)))
+        self.coefficient_label.setText('k_x=' + str(round(self.k_x, 2)) + ', k_y=' + str(round(self.k_y, 2)))
 
-        self.__update_map() 
+        self.__update_map()
 
-    def new_k_x(self, k):
-        if k!= 0: self.k_x = k
+    def new_k_x(self, k: float):
+        if k != 0: self.k_x = k
 
-    def new_k_y(self, k):
-        if k!= 0: self.k_y = k
-   
+    def new_k_y(self, k: float):
+        if k != 0: self.k_y = k
+
     def apply(self):
         try:
             arr = self.tasks.keys()
@@ -785,7 +787,8 @@ class MainWindow(QWidget):
 
             self.tasks.clear()
         except Exception as err:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
     def reset(self):
         try:
@@ -802,7 +805,8 @@ class MainWindow(QWidget):
             self.exposure.setValue(self.params.get('exposure'))
             self.LUT.setValue(self.params.get('LUT'))
         except Exception as err:
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
     def __update_map(self):
         try:
@@ -815,9 +819,9 @@ class MainWindow(QWidget):
                 map_x = self.map.get_x_cord()
                 map_y = self.map.get_y_cord()
 
-                print('x: '+str(self.x)+', y: '+str(self.y))
-                print('map_x: '+str(map_x)+', map_y: '+str(map_y))
-                print('rect_x: '+str(self.rect_x)+', rect_y: '+str(self.rect_y))
+                print('x: ' + str(self.x) + ', y: ' + str(self.y))
+                print('map_x: ' + str(map_x) + ', map_y: ' + str(map_y))
+                print('rect_x: ' + str(self.rect_x) + ', rect_y: ' + str(self.rect_y))
 
                 self.sc = MplCanvas(width=5, height=4, dpi=100)
                 self.sc.mpl_connect('button_press_event', self.onclick)
@@ -845,14 +849,14 @@ class MainWindow(QWidget):
                 map_x = self.rect_x
                 map_y = self.rect_y
 
-                print('x: '+str(self.x)+', y: '+str(self.y))
-                print('map_x: '+str(map_x)+', map_y: '+str(map_y))
-                print('rect_x: '+str(self.rect_x)+', rect_y: '+str(self.rect_y))
+                print('x: ' + str(self.x) + ', y: ' + str(self.y))
+                print('map_x: ' + str(map_x) + ', map_y: ' + str(map_y))
+                print('rect_x: ' + str(self.rect_x) + ', rect_y: ' + str(self.rect_y))
 
-                self.sc.axes.imshow(img, extent=[map_x,
-                                                 map_x+img.shape[1],
+                self.sc.axes.imshow(img, extent=(map_x,
+                                                 map_x + img.shape[1],
                                                  map_y,
-                                                 map_y+ img.shape[0]])
+                                                 map_y + img.shape[0]))
                 self.sc.axes.add_patch(
                     Rectangle((self.rect_x, self.rect_y), img.shape[1],
                               img.shape[0],
@@ -862,13 +866,10 @@ class MainWindow(QWidget):
                               linestyle='dashed'))
         except Exception as err:
             traceback.print_exc()
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
-    def closeEvent(self,event):
-        #self.ximc_x.kill()
-        #self.ximc_y.kill()
-        #self.ximc_z.kill()
-
+    def closeEvent(self, event):
         self.ximc_x.disconnect()
         self.ximc_y.disconnect()
         self.ximc_z.disconnect()
@@ -876,154 +877,154 @@ class MainWindow(QWidget):
         self.cam.stop_acquisition()
         self.cam.close_device()
 
-    def get_x(self):
+    def get_x(self) -> int:
         return self.x
- 
-    def get_y(self):
+
+    def get_y(self) -> int:
         return self.y
- 
-    def get_ximc_x(self):
+
+    def get_ximc_x(self) -> Ximc:
         return self.ximc_x
- 
-    def get_ximc_y(self):
+
+    def get_ximc_y(self) -> Ximc:
         return self.ximc_y
- 
-    def get_map(self):
+
+    def get_map(self) -> ImageMap:
         return self.map
- 
-    def get_camera(self):
+
+    def get_camera(self) -> xiapi.Camera:
         return self.cam
- 
-    def get_step(self):
+
+    def get_step(self) -> int:
         return self.params['step']
-    
-    def get_rect_width(self):
+
+    def get_rect_width(self) -> float:
         return self.rect_width
-    
-    def get_rect_height(self):
+
+    def get_rect_height(self) -> float:
         return self.rect_height
-    
+
     def onclick(self, event):
         try:
             self.cord_move_to_x = int(event.xdata)
             self.cord_move_to_y = int(event.ydata)
-            print(str(self.cord_move_to_x)+' '+str(self.cord_move_to_y))
-            self.label_cord_move_to.setText('move to: x=' + str(self.cord_move_to_x) + ', y='+str(self.cord_move_to_y))
+            print(str(self.cord_move_to_x) + ' ' + str(self.cord_move_to_y))
+            self.label_cord_move_to.setText(
+                'move to: x=' + str(self.cord_move_to_x) + ', y=' + str(self.cord_move_to_y))
         except Exception as err:
             print(f'Unexpected {err=}, {type(err)=}')
-            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}', QtWidgets.QMessageBox.Ok)
-
+            QtWidgets.QMessageBox.critical(self, 'Ошибка ', f'Unexpected {err=}, {type(err)=}',
+                                           QtWidgets.QMessageBox.Ok)
 
 
 class ScanningDialog(QtWidgets.QDialog):
- 
-    def __init__(self, parent):
+
+    def __init__(self, parent: MainWindow):
         super().__init__()
- 
+
         self.cam = parent.get_camera()
         self.ximc_x = parent.get_ximc_x()
         self.ximc_y = parent.get_ximc_y()
         self.map = parent.get_map()
- 
+
         self.x = parent.get_x()
         self.y = parent.get_y()
         self.h = None
         self.w = None
- 
+
         self.setWindowTitle('Параметры сканирования')
- 
+
         grid = QtWidgets.QGridLayout()
         grid.addWidget(QtWidgets.QLabel('Текущие координаты: (' + str(self.x) + '; ' + str(self.y) + ')'), 0, 1, 1, 6)
- 
+
         x = QtWidgets.QSpinBox()
         x.setSpecialValueText(str(self.x))
         x.setMaximum(10000)
         x.valueChanged.connect(self.y_changed)
         grid.addWidget(QtWidgets.QLabel('x'), 1, 0)
         grid.addWidget(x, 1, 1, 1, 2)
- 
+
         y = QtWidgets.QSpinBox()
         y.setSpecialValueText(str(self.y))
         y.setMaximum(10000)
         y.valueChanged.connect(self.x_changed)
         grid.addWidget(QtWidgets.QLabel('y'), 1, 4)
         grid.addWidget(y, 1, 5, 1, 2)
- 
+
         w = QtWidgets.QSpinBox()
         w.setSpecialValueText('0')
         w.setMaximum(3000)
         w.valueChanged.connect(self.w_changed)
         grid.addWidget(QtWidgets.QLabel('wight'), 2, 0)
         grid.addWidget(w, 2, 1, 1, 2)
- 
+
         h = QtWidgets.QSpinBox()
         h.setSpecialValueText('0')
         h.setMaximum(3000)
         h.valueChanged.connect(self.h_changed)
         grid.addWidget(QtWidgets.QLabel('height'), 2, 4)
         grid.addWidget(h, 2, 5, 1, 2)
- 
+
         scan_button = QtWidgets.QPushButton('Scan')
         scan_button.clicked.connect(self.scan)
         grid.addWidget(scan_button, 3, 3, 1, 2)
 
-        self.step_y = parent.get_rect_height()-20
-        self.step_x = parent.get_rect_width()-20
- 
+        self.step_y = parent.get_rect_height() - 20
+        self.step_x = parent.get_rect_width() - 20
+
         self.setLayout(grid)
- 
+
     def h_changed(self, h):
         self.h = h
- 
+
     def w_changed(self, w):
         self.w = w
- 
+
     def x_changed(self, x):
         self.x = x
- 
+
     def y_changed(self, y):
         self.y = y
- 
+
     def scan(self):
         if self.x is not None and self.y is not None and self.w is not None and self.h is not None:
             self.ximc_x.move_to(self.x, 0)
             self.ximc_y.move_to(self.y, 0)
 
             img = get_image(self.cam)
-            step_x =  self.step_x
-            step_y =  self.step_y
+            step_x = self.step_x
+            step_y = self.step_y
 
             n_x = self.w // step_x
             n_y = self.h // step_y
- 
+
             x = self.x
             y = self.y
- 
+
             for i in range(0, n_x):
                 for j in range(0, n_y):
                     y = y - step_y
                     self.ximc_y.move_to(y, 0)
                     self.map.add_image(get_image(self.cam), x, y)
- 
+
                 x = x + step_x
                 self.ximc_x.move_to(x, 0)
                 self.map.add_image(get_image(self.cam), x, y)
- 
+
                 for j in range(0, n_y):
                     y = y + step_y
                     self.ximc_y.move_to(y, 0)
                     self.map.add_image(get_image(self.cam), x, y)
- 
-                if i != n_x-1:
+
+                if i != n_x - 1:
                     x = x + step_x
                     self.ximc_x.move_to(x, 0)
                     self.map.add_image(get_image(self.cam), x, y)
- 
+
                 self.close()
         else:
             QtWidgets.QMessageBox.critical(self, 'Ошибка ', 'Не все поля заполненны', QtWidgets.QMessageBox.Ok)
-    
-    
+
 
 app = QApplication(sys.argv)
 
